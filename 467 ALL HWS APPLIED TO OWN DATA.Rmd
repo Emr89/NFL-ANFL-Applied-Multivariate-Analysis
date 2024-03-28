@@ -1,0 +1,1202 @@
+---
+title: "467 APPLIED NFL DATA"
+author: "Eric Rupinski"
+date: "3/24/2021"
+output:
+  word_document: default
+  html_document:
+    df_print: paged
+  pdf_document: default
+editor_options:
+  chunk_output_type: console
+---
+
+```{r}
+#Introducing the Dataset
+
+# Data set:NFL Data that was constructed using a combination of sources such as the NFL, NEXT GEN STATS, ESPN, FOOTBALLDB
+  #Data is TEAM based performance for match ups on a week to week basis
+#Data set called  "WEEKlY TEAM PERFORMANCE", which will be used for individual team performance
+library(knitr)
+library(readxl)
+WTP<- read_excel("C:/Users/ericr/Desktop/NFL STATISTICS/NFL PROJECT DATA/T test data/WTP AV.xlsx")
+
+
+#NOTE DATASETS ARE FULLY PRINTED AT BOTTOM
+
+#List of Variables in data set 1
+names(WTP)
+
+#EXPLANATION OF VARIABLES:
+  #DATA SET: (NOTE Match up/Game will be used interchangeably) 
+
+#Team = (ID) which NFL TEAM that line of data in from the perspective of
+
+#outcome = Binary, either (1,0), did the team win the game or not, 1 = Team WON, 0 = Team Lost 
+
+#Opp = The name of the opposition/other team in the match up
+    #Will be referred to as OPPONENT in explanations
+
+#TEAMS = The Team's score from the game, ex = scored 34 points in the game, TEAMS = 34
+
+#OPPS = The Opponents' score from the game, ex had 21 points scored AGAINST the team during the game, OPPS = 17
+
+#FD = # of first downs obtained by the Team throughout the ENTIRE game
+
+#PY = # of Passing Yards obtained by the Team throughout the ENTIRE game
+
+#RY = # of Rushing Yards obtained by the Team throughout the ENTIRE game
+
+#TO = # of Turnovers (fumbles/Interceptions) PRODUCED by the Team throughout the ENTIRE game
+
+#DFD = # of first downs obtained by the Opponent throughout the ENTIRE game
+
+#DPY = # of Passing Yards obtained by the Opponent throughout the ENTIRE game
+
+#DRY = # of Rushing Yards obtained by the Opponent throughout the ENTIRE game
+
+#DTO = # of Turnovers (fumbles/Interceptions) PRODUCED by the Opponent throughout the ENTIRE game
+
+#TT = "Time to Throw measures the average amount of time elapsed from the time of snap to throw on every pass attempt for a passer (sacks excluded)" (Next Gen Stats)
+
+#CAY = Average amount of air yards on COMPLETED passes
+
+#AGG = Aggressiveness percent, the percentage of passes the Quarterback throws into tight coverage
+
+#LCAD = Longest completed Air distance throw for the entire game 
+
+#AYTS = Average Yards to the Sticks, which is the amount of air yards ahead/behind the first down marker for all attempts for the passer 
+
+#ATT = The total number of PASSING attempts the Quarterback attempts during the ENTIRE GAME
+
+#TD = The total number of PASSING Touchdowns the Quarterback THROWS the ENTIRE GAME
+
+#INT = The total number of PASSING INTERCEPTIONS the Quarterback THROWS the ENTIRE GAME
+
+#COMP = The Completion Percentage for the Quarterback over the ENTIRE GAME (RATIO OF PASSES COMPLETED/PASSES ATTEMPTED)
+
+#Week = The numbered week in the NFL season that the GAME occurred in 
+#RUSHATT = The # of RUSHING attempts, attempted by primary running back/s 
+
+#RUSHTD = # of RUSHING Touchdowns scored by primary running back/s
+
+#EFF= The average efficiency of the running back/s in terms of running North/South. THE LOWER the number, the more of a North/South running back the average Running back is. 
+
+#EM = the average percentage that there are 8+ defenders in the box, in terms of preparing for the running play
+
+#TLOS = the average amount of time the Running back stays behind the line of scrimmage from the start of the snap until when he crosses the line of scrimmage 
+
+#AVG = the average # of yards the running back gains PER PLAY
+
+#CUSH = the average amount of cushion in terms of yard cushion a WR given per play
+
+#SEP = the average amount of separation a WR creates from a defensive back each play 
+
+#TAY = average passing air yards for targets for each play 
+
+#CTCH = the average catch percentage for the team per game 
+
+#YACR = the average amount of yards attained AFTER the RECEPTION by WRs/TE PER PLAY(average for the entire team)
+
+
+    #Dimension of the data set
+dim(WTP)
+#There are 34 variables and 512 observations
+
+# Printing Data set
+print(WTP)
+
+#Get rid of NA observations 
+WTP <- na.omit(WTP)
+
+#Make data frame into a matrix
+WTPM <-t(as.matrix(WTP))
+```
+
+```{r}
+#Assignment 1:
+  #Find the Mean Vector, Variance-Covariance Matrix, and Correlation Matrix
+
+#Subset data for ease to New England Patriots 
+NEDF<- subset(WTP,Team=="NE")
+NEDF <- NEDF[,-1]
+NEDF <- NEDF[,-2]
+NEM <- as.matrix(NEDF)
+
+# Find Mean vector Xbar
+xbarNE <- rowMeans(NEM)
+#print Xbar for NE
+xbarNE
+
+#Find Variance-Covariance Matrix
+covNE<- cov(NEM,NEM)
+#print Variance-Covariance Matrix
+covNE
+
+#Find Correlation Matrix
+corNE<- cor(NEM,NEM)
+#print Correlation Matrix
+corNE
+```
+
+
+```{r}
+#Assignment #2 Work 
+  #Assess Bivariate Normality in Pairs 
+
+#Library and Set up Dataset
+library(MVN)
+library(tidyverse)
+library(careless)
+library(psych)
+library(mclust)
+library(ppcc)
+A2WTP <- WTP[,c(12,20)]
+
+#All Major Tests For Normality:
+  #Mardia,HZ,Royston,DH, and Energy
+
+#mardia test for multivariate normality 
+mvn1<-MVN::mvn(data = A2WTP, mvnTest = "mardia")
+mvn1
+
+#HZ test for multivariate normality 
+mvn2<-MVN::mvn(data = A2WTP, mvnTest = "hz")
+mvn2
+
+#Royston test for multivariate normality 
+mvn3<-MVN::mvn(data = A2WTP, mvnTest = "royston")
+mvn3
+
+#DH test for multivariate normality 
+mvn4<-MVN::mvn(data = A2WTP, mvnTest = "dh")
+mvn4
+
+#Energy test for multivariate normality 
+mvn5<-MVN::mvn(data = A2WTP, mvnTest = "energy")
+mvn5
+
+#RESULTS:
+#Mardia = NO MULTIVARIATE NORMALITY
+#HZ = MULTIVARIATE NORMALITY 
+#ROYSTON = NO MULTIVARIATE NORMALITY
+#DH = NO MULTIVARIATE NORMALITY
+#ENERGY = MULTIVARIATE NORMALITY
+
+#Results: No, Yes, No, Yes, No
+  #RESULTS ARE DUE TO TT VARIABLE NOT BE NORMALLY DISTRIBUTED
+
+#CHECK FOR OUTLIERS IN Dataset
+#Take Outliers out of data
+
+#NOTE OUTLIER CODE WILL RUN IN R BUT WILL NOT KNIT 
+
+  #Mutate WTP to calculate outliers
+#AWTP <-WTP %>%
+ # mutate(string = longstring(.)) %>%
+  #mutate(md=outlier(.,plot = FALSE))
+
+#USing Chi Squared, get rid of the outliers and reset the Dataset
+#cutoff <- (qchisq(p=1-0.001, df=ncol(AWTP)))
+#WTPC <- AWTP %>% 
+ # filter(string <= 10,
+         #md<cutoff) %>%
+  #select(-string,-md)
+
+#Remove all NAs 
+#WTPCs_clustering <- WTPC %>%
+ # na.omit() 
+
+# REDEFINE DATASET AND RETRYING NORMALITY TESTS 
+#WTPCC<- data.frame(WTPCs_clustering)
+#SWTPCC <- WTPCC[,c(12,20)]
+
+#mardia test for multivariate normality 
+#mvn6<-MVN::mvn(data = SWTPCC, mvnTest = "mardia")
+#mvn6
+
+#HZ test for multivariate normality 
+#mvn7<-MVN::mvn(data = SWTPCC, mvnTest = "hz")
+#mvn7
+
+#Royston test for multivariate normality 
+#mvn8<-MVN::mvn(data = SWTPCC, mvnTest = "royston")
+#mvn8
+
+#DH test for multivariate normality 
+#mvn9<-MVN::mvn(data = SWTPCC, mvnTest = "dh")
+#mvn9
+
+#Energy test for multivariate normality 
+#mvn10<-MVN::mvn(data = SWTPCC, mvnTest = "energy")
+#mvn10
+
+#RESULTS:
+#Mardia = MULTIVARIATE NORMALITY
+#HZ = MULTIVARIATE NORMALITY 
+#ROYSTON = MULTIVARIATE NORMALITY
+#DH = MULTIVARIATE NORMALITY
+#ENERGY = MULTIVARIATE NORMALITY
+
+#Results: Yes, Yes, Yes, Yes, Yes
+
+#Additional Test for Normality 
+#ProbPlot<- ppccTest(SWTPCC, qfn="qnorm")
+  
+#Result: Test stated the differs from Normal Distrivution 
+
+#Results: ALL TESTS STATE: MULTIVARIATE NORMALITY = TRUE (Except for Probility Plot Coefficent Correlation Test)
+
+  #Which means that searching for outliers in the TT variable was effective and removing those outliers and standardizing lead to the distribution becoming normally distributed, most likely. 
+```
+
+```{r}
+#Assignment 3: 
+#Bonferroni Confidence Intervals, Test hypothesis that provided means do/do not equal/represent actual values
+#Create Variance-Covariance Matrix and Correlation Matrix
+
+#Library and Set Up Dataset:
+WTP<- read_excel("C:/Users/ericr/Desktop/NFL STATISTICS/NFL PROJECT DATA/T test data/WTP AV.xlsx")
+library(DescTools)
+library(jocre)
+DFF1 <- WTP[,c(6,22)]
+SDF1 <- DFF1[1:32,]
+
+#Covariance Matrix:
+COVSDF1 <- cov(SDF1)
+COVSDF1
+
+#Correlation Matrix:
+CORSDF1 <- cor(SDF1)
+CORSDF1
+
+#95% ellipsoid 
+  #use cset function in jocre package
+NFE1 <- cset(dat =SDF1, method = "hotelling", alpha = 0.05)
+plot(NFE1,xlim = c(15,30),ylim = c(60,70),  main = "CI Region btwn FD & COMP")
+
+#BONFERRONI CI Function 
+simult.ci <- function(x,n,p){
+  crit.value<-sqrt(((p*(n-1))/(n-p)*qf(0.05,p,n-p,lower.tail = FALSE)))
+  paste("(",mean(x)-crit.value*sqrt(var(x)/n),",",mean(x)+crit.value*sqrt(var(x)/n),")")
+}
+bonferroni.cis <- function(m,x,n){
+  critical_value <-qt(0.05/(2*m),n-1,lower.tail = FALSE)
+  paste("(",mean(x)-critical_value*sqrt(var(x)/n),",",mean(x)+critical_value*sqrt(var(x)/n),")")
+}
+
+#Set up for simultaneous CI For Test 
+n <- 32
+p <-2
+
+#simultaneous Hotelling CIS
+simult.ci(SDF1$FD,n,p)
+simult.ci(SDF1$COMP,n,p)
+
+#Bonferroni CIs:
+bonferroni.cis(2,SDF1$FD,32)
+bonferroni.cis(2,SDF1$COMP,32)
+
+#Function calculates and plots confidence intervals based on Hotellings' T2 and Bonferroni procedure
+
+working.hotelling.bonferroni.intervals <- function(x, y) {
+  library(ggplot2)
+  library(gridExtra)
+  
+  y <- as.matrix(y)
+  x <- as.matrix(x)
+  n <- length(y)
+
+  # Get the fitted values of the linear model
+  fit <- lm(y ~ x)
+  fit <- fit$fitted.values
+  
+  # Find standard error as defined above
+  se <- sqrt(sum((y - fit)^2) / (n - 2)) * 
+    sqrt(1 / n + (x - mean(x))^2 / 
+           sum((x - mean(x))^2))
+
+  # Calculate B and W statistics for both procedures.
+  W <- sqrt(2 * qf(p = 0.95, df1 = 2, df2 = n - 2))
+  B <- 1-qt(.95/(2 * 3), n - 1)
+
+  # Compute the simultaneous confidence intervals
+  
+  # Working-Hotelling
+  wh.upper <- fit + W * se
+  wh.lower <- fit - W * se
+  
+  # Bonferroni
+  bon.upper <- fit + B * se
+  bon.lower <- fit - B * se
+  
+  xy <- data.frame(cbind(x,y))
+  
+  # Plot the Working-Hotelling intervals
+  wh <- ggplot(xy, aes(x=x, y=y)) + 
+    geom_point(size=2.5) + 
+    geom_line(aes(y=fit, x=x), size=1) + 
+    geom_line(aes(x=x, y=wh.upper), colour='blue', linetype='dashed', size=1) + 
+    geom_line(aes(x=x, wh.lower), colour='blue', linetype='dashed', size=1) +
+    labs(title='Working-Hotelling')
+  
+  # Plot the Bonferroni intervals
+  bonn <- ggplot(xy, aes(x=x, y=y)) + 
+    geom_point(size=2.5) + 
+    geom_line(aes(y=fit, x=x), size=1) + 
+    geom_line(aes(x=x, y=bon.upper), colour='blue', linetype='dashed', size=1) + 
+    geom_line(aes(x=x, bon.lower), colour='blue', linetype='dashed', size=1) +
+    labs(title='Bonferroni')
+  
+  grid.arrange(wh, bonn, ncol = 2)
+  # Collect results of procedures into a data.frame and return
+  res <- data.frame(round(cbind(W, B), 3), row.names = c('Result'))
+  colnames(res) <- c('W', 'B')
+  
+  return(res)
+}
+#plotting FD and Comp variables from above with new function
+
+working.hotelling.bonferroni.intervals(SDF1$COMP,SDF1$FD)
+
+  #Hypothetical Test if given mean values equal the actual mean values of the distribution
+
+MU_G <- c(25.0,68.00)
+HotellingsT2Test(SDF1,mu=MU_G,test = "f")
+
+#Results of Hotelling Test:
+  #As expected, the given means of 25.0 for FD(First Downs) and 68 for COMP (Completion Percentage) are NOT the TRUE means for the distributions, as the true means are equal to ~ 20 first downs for FD and 63.77% completion percentage for COMP.
+```
+
+
+```{r}
+#Assignment 4:
+#test for difference in mean vectors between two different samples/treatment groups, construct 99% and 95% simultaneous confidence intervals for the pairs of mean components, what treatments, if any, appear to be different, construct 95% bonferroni CIs for pairs of mean components 
+
+#Library and Set Up Dataset
+NESUB <- subset(WTP,Team=="NE")
+NYJSUB <- subset(WTP,Team=="NYJ")
+
+NESUB <- NESUB[,c(-3)]
+NYJSUB <- NYJSUB[,c(-3)]
+MNENY<- as.data.frame(rbind(NESUB,NYJSUB))
+
+  #Hotelling Test:
+MNENY <- MNENY[,c(-23:-28)]
+
+HT2 <- with(MNENY,HotellingsT2Test(cbind(outcome,TEAMS,OPPS,FD,PY,RY,TO,DFD,DRY,DPY,DTO,TT,CAY,AGG,LCAD,AYTS,ATT,TD,INT,COMP,Week,CUSH,SEP,TAY,CTCH,YACR)~Team))
+
+#Results:
+  #p value = 0.07533302
+  # Though this does not meet the threshold for alpha level of 0.05, this is a large data set and it does meet the alpha level of 0.1 and this is just an example, so we will continue with calculating CIs
+
+
+  #Two Sample T Test
+TWOSAMPLETTEST <- function(x1,x2,level){
+  p<-ncol(x1)
+  n1<-nrow(x1)
+  n2<-nrow(x2)
+  x1bar<- apply(x1,2,mean)
+  x2bar<- apply(x2,2,mean)
+  cat("\n mean vector of population one \n", x1bar)
+  cat("\n\n mean vector of population two \n", x2bar)
+  s1<-cov(x1)
+  s2<-cov(x2)
+  s.pool <- (n1-1)/(n1+n2-2)*s1+(n2-1)/(n1+n2-2)*s2
+  tsq<-t(x1bar-x2bar)%*%solve((1/n1 +1/n2)*s.pool)%*%(x1bar-x2bar)
+  csq<-(n1+n2-2)*(p/(n1+n2-p-1))*qf(level,p,n1+n2-p-1)
+  if(tsq>csq){
+    cat("\n\n reject equality of mean vectors\n \n")
+  cat("The coefficents of the linear combination \n of most responsible for the rejection is
+      \n", solve(s.pool)%*% (x1bar-x2bar))
+}
+  else cat("\n\n do NOT reject equality of mean vectors\n \n")
+  scit<- matrix(rep(0,p*3),nrow = p)
+  scib<- matrix(rep(0,p*3),nrow = p)
+  for(i in 1:p){
+    scit[i,1]<-x1bar[i]-x2bar[i]
+    scit[i,2]<-x1bar[i]-x2bar[i]-sqrt(csq)*sqrt((1/n1+1/n2)*s.pool[i,i])
+    scit[i,3]<-x1bar[i]-x2bar[i]+sqrt(csq)*sqrt((1/n1+1/n2)*s.pool[i,i])
+    scib[i,1]<-x1bar[i]-x2bar[i]
+    scib[i,2]<-x1bar[i]-x2bar[i]-qt(1-(1-level)/(2*p),n1+n2-2)*sqrt((1/n1+1/n2)*s.pool[i,i])
+    scib[i,3]<-x1bar[i]-x2bar[i]+qt(1-(1-level)/(2*p),n1+n2-2)*sqrt((1/n1+1/n2)*s.pool[i,i])
+  }
+  
+  scit<-data.frame(Estimate=scit[,1],LowerCI=scit[,2],UpperCI=scit[,3])
+   scib<-data.frame(Estimate=scib[,1],LowerCI=scib[,2],UpperCI=scib[,3])
+  cat("\n T Squared Based Simulatenous CI for Difference \n")
+   print(scit)
+   cat("\n Bonferroni Based Simulatenous CI for Difference \n")
+   print(scib)
+   
+}
+
+#Comparing means from NFL DATA set for all variables between the New England Patriots and the New York Jets
+
+#Set up Data Set Again
+
+NESUB <- subset(WTP,Team=="NE")
+NYJSUB <- subset(WTP,Team=="NYJ")
+NESUB <- NESUB[,c(-3)]
+NYJSUB <- NYJSUB[,c(-3)]
+MNENY<- as.data.frame(rbind(NESUB,NYJSUB))
+MNENY <- MNENY[,c(-1,-23:-28)]
+
+# x1 = New England Patriots
+x1 = MNENY[1:16,]
+
+#x2 = New York Jets 
+x2 = MNENY[17:32,]
+
+# Find Difference of Means 
+NENYCTSTT <- TWOSAMPLETTEST(x1,x2,0.95)
+
+#Results 
+  # The following Results are the Hotellings' T2 and Bonferroni Confidence Intervals
+  summary(NENYCTSTT)
+```
+
+
+```{r}
+#THIS CHUNK IS TO NORMALIZE ALL THE DATA FOR THE REGRESSION MODELS
+
+WTP<- read_excel("C:/Users/ericr/Desktop/NFL STATISTICS/NFL PROJECT DATA/T test data/WTP AV.xlsx")
+library(forecast)
+NWTP <- WTP[,c(-1,-3)]
+NWTP<- na.omit(NWTP)
+#NWTP <- NWTP[NWTP$OPPS  > 0,]
+#NWTP <- NWTP[NWTP$PY  > 0,]
+#NWTP <- NWTP[NWTP$RY  > 0,]
+#NWTP <- NWTP[NWTP$TO  > 0,]
+#NWTP <- NWTP[NWTP$DPY  > 0,]
+#NWTP <- NWTP[NWTP$DRY  > 0,]
+#NWTP <- NWTP[NWTP$DTO  > 0,]
+#NWTP <- NWTP[NWTP$TT > 2 ,]
+# <- NWTP[NWTP$TT < 3.4 ,]
+NWTP <- NWTP[NWTP$CAY  > 0,]
+NWTP <- NWTP[NWTP$AGG  < 40,]
+#NWTP <- NWTP[NWTP$LCAD  > 0,]
+#NWTP <- NWTP[NWTP$ATT  > 0,]
+#NWTP <- NWTP[NWTP$TD  > 0,]
+#NWTP <- NWTP[NWTP$INT  > 0,]
+#NWTP <- NWTP[NWTP$RUSHATT  > 0,]
+#NWTP <- NWTP[NWTP$RUSHTD  > 0,]
+#NWTP <- NWTP[NWTP$EFF  > 0,]
+#NWTP <- NWTP[NWTP$EM  > 0,]
+#NWTP <- NWTP[NWTP$TLOS  > 0,]
+NWTP <- NWTP[NWTP$AVG  < 8,]
+#NWTP <- NWTP[NWTP$SEP  > 0,]
+#NWTP <- NWTP[NWTP$CTCH  > 0,]
+NWTP <- NWTP[NWTP$TAY  < 20,]
+NWTP <- NWTP[NWTP$YACR  <10 ,]
+#boxcox lambda list:
+#TO = NA  0.3008705
+#DTO = NA  0.3157798
+#CAY = 0.551116
+#AGG = 0.4273495
+  #ATT = 0.2296755
+# TD = NA  0.4687738
+#INT = NA  0.1973087
+  #RUSHATT = -0.5606323
+#RUSHTD = 0.2437525
+  #EFF = -0.9999282
+  #EM = -0.1580629
+  #AVG = 0.6778013
+  #SEP = 0.1241314
+  #yacR = 0.5778333
+NWTP <- transform(NWTP, sqrtPY = sqrt(PY), sqrtRY = sqrt(RY), BCTO = BoxCox(TO, lambda = 0.3008705), sqrtDPY = sqrt(DPY), sqrtDRY = sqrt(DRY), BCDTO = log(DTO+1), BCCAY =BoxCox(CAY,lambda =  0.551116), BCAGG = BoxCox(AGG,lambda = 0.4273495), logLCAD = log(LCAD+1), BCATT =BoxCox(ATT,lambda = 0.2296755), BCTD = BoxCox(TD,lambda =0.4687738 ) , BCINT = BoxCox(INT,lambda = 0.1973087), BCRUSHATT = BoxCox(RUSHATT, lambda =-0.5606323 ), BCRUSHTD = BoxCox(RUSHTD, lambda =0.2437525 ), BCEFF = BoxCox(EFF,lambda = -0.9999282), BCEM = BoxCox(EM,lambda = -0.1580629), sqrtTLOS = sqrt(TLOS), BCAVG = BoxCox(AVG,lambda = 0.6778013), BCSEP = BoxCox(SEP,lambda = 0.1241314 ), BCYACR = BoxCox(YACR,lambda =  0.5778333))
+
+NWTP <- NWTP[,c(-5:-7,-9:-11,-13:-15,-17:-19,-21:-27,-29,-32)]
+
+#VARIABLES NOT NORMALLY DISTRIBUTED 
+  #BCSEP, BCYACR, BCEM, BCRUSHATT, BCTO,BCDTO, BCAGG, BCATT, BCTD, BCINT,BCRUSHTD
+
+NWTP <- NWTP[,c(-1,-14,-17,-19,-21:-25,-27,-30:-31)]
+MVNT2 <- MVN::mvn(data = NWTP, mvnTest = "mardia")
+
+#NWTP now consists of all normal or near normal distributions, even though it is not stated to be multivariate normal, will do regression anyway. 
+```
+
+```{r}
+#Assignment #5:
+#  A). Find Linear Models for 4 variables 
+  #finding best way with regsubsets package
+library(leaps)
+
+#RegSubset to find best combination of variables
+
+  #Variable = sqrtPY
+RSPY<- regsubsets(sqrtPY~. -TEAMS -OPPS -FD-DFD-sqrtRY-sqrtDPY-sqrtDRY-logLCAD, data = NWTP, intercept = TRUE, nbest = 1)
+
+#best subset with 4 variables
+RSPY4 <- lm(sqrtPY~FD+COMP+sqrtRY+BCCAY, data = NWTP)
+
+#best subset with 5 variables 
+RSPY5 <- lm(sqrtPY~TEAMS+FD+COMP+sqrtRY+BCCAY, data = NWTP)
+
+#best subset with 6 variables 
+RSPY6 <- lm(sqrtPY~TEAMS+FD+COMP+TAY+sqrtRY+BCCAY, data = NWTP)
+
+
+ #Variable = sqrtRY
+RSRY<- regsubsets(sqrtRY~. -TEAMS -OPPS -FD-DFD-sqrtRY-sqrtDPY-sqrtDRY-logLCAD, data = NWTP, intercept = TRUE, nbest = 1)
+
+#best subset with 4 variables
+RSRY4 <- lm(sqrtRY~AYTS+COMP+sqrtPY+BCAVG, data = NWTP)
+
+#best subset with 5 variables 
+RSRY5 <- lm(sqrtRY~AYTS+COMP+sqrtPY+BCAVG+TAY, data = NWTP)
+
+#best subset with 6 variables 
+RSRY6 <- lm(sqrtRY~AYTS+COMP+sqrtPY+BCAVG+TAY+TT, data = NWTP)
+
+
+ #Variable = COMP
+RSCOMP<- regsubsets(COMP~. -TEAMS -OPPS -FD-DFD-sqrtRY-sqrtDPY-sqrtDRY-logLCAD, data = NWTP, intercept = TRUE, nbest = 1)
+
+#best subset with 4 variables
+RSCOMP4 <- lm(COMP~TT+AYTS+CTCH+sqrtPY, data = NWTP)
+
+#best subset with 5 variables 
+RSCOMP5 <- lm(COMP~TT+AYTS+CTCH+sqrtPY+BCCAY, data = NWTP)
+
+#best subset with 6 variables 
+RSCOMP6 <- lm(COMP~TT+AYTS+CTCH+sqrtPY+BCCAY+sqrtTLOS, data = NWTP)
+
+
+ #Variable = TT
+RSTT<- regsubsets(TT~. -TEAMS -OPPS -FD-DFD-sqrtRY-sqrtDPY-sqrtDRY-logLCAD, data = NWTP, intercept = TRUE, nbest = 1)
+
+#best subset with 4 variables
+RSTT4 <- lm(TT~COMP+BCCAY+CTCH+sqrtPY, data = NWTP)
+
+#best subset with 5 variables 
+RSTT5 <- lm(TT~AYTS+COMP+BCCAY+CTCH+sqrtPY, data = NWTP)
+
+#best subset with 6 variables 
+RSTT6 <- lm(TT~AYTS+COMP+BCCAY+CTCH+sqrtPY+sqrtTLOS, data = NWTP)
+
+#Outlier Check:
+  #Note Dataset was normalized and Outliers were Removed Earlier in the file. 
+
+#Construct a 95% Prediction Interval for sqrtPY prediction with values TEAMS = 28, FD = 21, COMP = 67.8, TAY = 8.6, sqrtRY= 8.7, BCCAY = 3.62
+
+  #Creating new dataframe for new predictions and plugging in:
+nd<- data.frame(TEAMS = 28, FD = 21, COMP = 67.8, TAY = 8.6, sqrtRY= 8.7, BCCAY = 3.62)
+
+(YHP <- predict(RSPY6,nd,interval = c("prediction"),level=0.95))
+
+ #Answer = ~ (16.70816)^2 passing yards
+            # = ~ 279.162 passing yards
+
+
+# B). #Multivariate Regression Model
+  # i). Fit Model and summary
+MVM1 <-  lm(cbind(sqrtPY,COMP,TT,sqrtRY) ~ CTCH+TEAMS+sqrtTLOS+AYTS, data = NWTP)
+summary(MVM1)
+
+#Specify Matrix of Coefficents: 
+  coefficients(MVM1)
+  
+# ii). Analyze Residuals and Check for Outliers
+  
+  #Residuals of Multivariate Regression
+head(resid(MVM1))
+SH<-t(resid(MVM1)) %*% (resid(MVM1))/(337-(5))
+  
+#Calculating Multivariate Normal
+ MVMTN1<- MVN::mvn(resid(MVM1), subset = NULL, mvnTest = c("mardia"), covariance = TRUE, tol = 1e-25, alpha = 0.5, scale = FALSE, desc = TRUE, transform = "none", R = 1000, univariateTest = c("SW"), univariatePlot = "none", multivariatePlot = "qq", multivariateOutlierMethod = "quan", bc = FALSE, bcType = "rounded", showOutliers = TRUE, showNewData = FALSE)
+
+#summary of multivariate normal test  
+MVMTN1$multivariateNormality
+
+#Results:
+ #There appear to be ~ 11 outliers , and there is a slight negative skew to the distribution though, and the mardia test stated that the distribution is not normally distributed in the multivariate case. 
+
+
+#iii). Construct a Prediction Interval Given the following values 
+    # CTCH = 61.25, COMP = 65.45, sqrtTLOS = 1.654, TT = 2.73)
+
+NDMT1<- data.frame(AYTS = -0.2, TEAMS = 35, CTCH = 67.85, sqrtTLOS = 1.34)
+
+#Function for Simulatenous 95 CI
+pred.mlm = function(object, newdata, level=0.95,interval = c("confidence", "prediction"))
+{
+  form = as.formula(paste("~",as.character(formula(object))[3]))
+  xnew = model.matrix(form, newdata)
+  fit = predict(object, newdata)
+  Y = model.frame(object)[,1]
+  X = model.matrix(object)
+  n = nrow(Y)
+  m = ncol(Y)
+  p = ncol(X) - 1
+  sigmas = colSums((Y - object$fitted.values)^2) / (n - p - 1)
+  fit.var = diag(xnew %*% tcrossprod(solve(crossprod(X)), xnew))
+  if(interval[1]=="prediction") fit.var = fit.var + 1
+  const = qf(level, df1=m, df2=n-p-m) * m * (n - p - 1) / (n - p - m)
+  vmat = (n/(n-p-1)) * outer(fit.var, sigmas)
+  lwr = fit - sqrt(const) * sqrt(vmat)
+  upr = fit + sqrt(const) * sqrt(vmat)
+  if(nrow(xnew)==1L){
+    ci = rbind(fit, lwr, upr)
+    rownames(ci) = c("fit", "lwr", "upr")
+  } else {
+      ci = array(0, dim=c(nrow(xnew), m, 3))
+      dimnames(ci) = list(1:nrow(xnew), colnames(Y), c("fit", "lwr", "upr") )
+      ci[,,1] = fit
+      ci[,,2] = lwr
+      ci[,,3] = upr
+  } 
+  ci
+  }
+  
+  
+#95 CI Intervals and Print
+PMVM1 <- pred.mlm(MVM1, NDMT1, level=0.95,interval = c("prediction"))
+  print(PMVM1)
+  
+  #Results:
+  #sqrtPY = 17.1^2 = 292.41
+  #Comp = 70.83% 
+  #TT = 2.633
+  #sqrtRY = 12.23^2 = 149.5729
+
+# The range appears larger for the simulatenous Confidence Intervals compared to the one-at-a-time confidence intervals.
+```
+
+```{r}
+#assignment 6:
+  #Construct covariance matrix, obtain eigenvalue and eigenvector for PCA, compute total portion by first two PCs.
+
+#Library and Dataset up
+AVWTP<- WTP[,c(5:8)]
+
+#A ). covariance matrix 
+COVNWTP<- cov(as.matrix(AVWTP))
+COVNWTP
+
+# correlation matrix 
+CORNWTP<- cor(as.matrix(AVWTP))
+CORNWTP
+
+#B find eigenvalues and eigen vectors pairs
+PCA_AVWTP <- principal(r=AVWTP,nfactors = 4,rotate = "none")
+PCA_AVWTP
+
+#Eigenvalues:
+eigen(CORNWTP)
+
+#C ). Compute the proportion of Total variance explained by the first two Principle Components
+
+  #Located in this subsection
+PCA_AVWTP$loadings
+
+  # The proportion of the first PC is 42.4% of the total variation 
+  #The proportion od the second PC is 33.33% of the total variation
+#The cumulative proportion explained by the FIRST TWO PCS is 75.7% of the total variation. 
+
+#Calculate the coefficents of R
+CPCA <- cor(NWTP,PCA_AVWTP$x)
+```
+
+```{r}
+#Bonus Work on selecting Models
+
+#ALSO, we can find the best overall subset with given criteria for the model using glmulti. Additionally, given regsubset results, we can also use glmulti to find the best lm model effectivley for second level interactions
+
+#library(glmulti)
+
+#GLMPY1<- glmulti(sqrtPY~., data = NWTP,intercept=TRUE,level = 1, method = "h", crit = "bic")
+# 262,144 models options for the following output
+# Resulting best equation: 
+
+
+#GLMPY2<- glmulti(sqrtPY~., data = NWTP,intercept=FALSE,level = 1, method = "h", crit = "bic")
+# 262,144 models options for the following output
+# Resulting best equation: sqrtPY~-1+TEAMS+FD+COMP+TAY+sqrtRY+BCCAY+logLCAD+BCAVG
+#exhaustive search up to 6 variables 
+#GLMPY6 <- glmulti(sqrtPY~TEAMS+FD+COMP+TAY+sqrtRY+BCCAY, data = NWTP,intercept=FALSE,level = 2, method = "h", crit = "bic")
+
+# Resulting best equation:
+
+
+
+#GLMPYA<- glmulti(sqrtPY~., data = NWTP,intercept=TRUE,level = 2, method = "g", crit = "bic")
+
+
+#GLMWTP<- glmulti(TT~CAY+AGG+AYTS+COMP+EFF+EM+TLOS+AVG+CUSH+SEP+TAY+CTCH+YACR, data=SSWTP,intercept=TRUE,level = 1, method = "h", crit = "bic")
+
+
+#GLMWTP2<- glmulti(TT~CAY+AGG+AYTS+COMP+EM+TLOS, data=SSWTP,intercept=TRUE,level = 2, method = "h", crit = "bic")
+
+```
+
+
+```{r}
+#Assignment #7 from textbook:
+  #Growth Curve Exersize
+
+#NOTE: My dataset did not seem appropriate for growth curves at the time so I did the example in the book.
+
+# Loading Libraries 
+library(ggplot2)
+library(psych)
+library(lavaan)
+library(lme4)
+library(nlme)
+library(readxl)
+
+#Read in File
+g2 <- read_excel("g2.xlsx")
+
+#String Data
+str(g2)
+
+#Describe First 4 variables by gender
+describeBy(g2[,1:4],group=g2$gender)
+
+#Set variable = # of groups and separating them
+len=length(g2$gender)
+id=(1:len)
+
+# Then binding them to have data organized by Gender
+g2=cbind(id,g2)
+g2
+
+#Seperating Genders Females and Males: Describing them, creating Xbar, Creating covariance matrix
+
+#Females:
+fg2=g2[1:11, ]
+fg2
+describe(fg2[, 2:5])
+Sf=cov(fg2[, 2:5])
+Sf
+Xbarf=cbind((colMeans(fg2[, 2:5])))
+Xbarf
+
+#Males
+mg2=g2[12:17, ]
+mg2
+describe(mg2[, 2:5])
+Sm=cov(mg2[, 2:5])
+Sm
+Xbarm=cbind((colMeans(mg2[, 2:5])))
+Xbarm
+
+#Calculating S pooled
+Sp=(1/(17-2))*((11-1)*Sf + (6-1)*Sm)
+
+#Calculating W
+W=(17-2)*Sp
+
+#Inverse of S pooled 
+SpI=solve(Sp)
+
+#create Matrix for transformations and powers of ages
+B <- matrix(c(1,8,64,512,1,10,100,1000,1,12,144,1728,1,14,196,2744),nrow = 4,ncol = 4)
+
+#Transpose of B
+TB <- t(B)
+
+#Transpose of B * Inverse of I * B
+P = (TB %*% SpI %*% B )
+
+#Inverse of Product
+PI <- solve(P)
+
+#Calculating Products for Female group 
+(BHFE <- PI %*% TB %*% SpI %*% Xbarf )
+
+#Calculating Products for Male group 
+(BHMA = PI %*% TB %*% SpI %*% Xbarm )
+
+#Calcuating Critical Value
+k=((17-2)*(17-2-1))/((17-2-4+3)*(17-2-4+3+1))
+((k/11)*PI)
+((k/6)*PI)
+
+#Creating Wilks Matrix for Women 
+x=as.matrix(fg2[,2:5])
+Wf=cbind(c(0,0,0,0),c(0,0,0,0),c(0,0,0,0),c(0,0,0,0))
+Wf
+
+for (i in 1:11) {
+Wf= Wf +  (cbind(x[i,]) - B %*% BHFE) %*% 
++ t(cbind(x[i,]) - B %*% BHFE)   
+}
+
+#Creating Wilks Matrix for Men 
+Wm=cbind(c(0,0,0,0),c(0,0,0,0),c(0,0,0,0),c(0,0,0,0))
+Wm
+for (i in 1:6) {
+Wm= Wm +  (cbind(x[i,]) - B %*% BHMA) %*% 
++t(cbind(x[i,]) - B %*% BHMA)   
+}
+
+#Combining for Interaction Matrix
+WE=Wf+Wm
+
+#Calculating General W
+W=(17-2)*Sp
+
+#Calculating Lambda Likelihood Ratio test 
+  #W/ HO stating that q-order polynomial is sufficent
+(LAMBDA=det(W)/det(WE))
+
+(-17+((1/2)*(4-3+2)))*log(LAMBDA)
+
+# It appears 3 is the best choice
+ 
+```
+
+
+```{r}
+#Assignment 8:
+#Exploratory Factor Analysis:
+
+#Set Up Dataset
+DWTP <- NWTP[,c(1:7)]
+
+#Create Covariance and Correlation Matrix
+SDWTP=cov(DWTP)
+RDWTP=cor(DWTP)
+
+#Maximum-likelihood factor analysis and Results:
+FA1 =factanal(DWTP,factors=1,cutoff=0.00000001,rotation="none")
+print(FA1,digits=5,cutoff=0.00000001)
+FA1
+summary(FA1)
+
+#Specifiy Loadings 
+LFA1=loadings(FA1)
+LFA1
+
+#M=2
+
+#Maximum-likelihood factor analysis and Results:
+FA2=factanal(DWTP,factors=2,cutoff=0.00000001)
+print(FA2,digits=5,cutoff=0.00000001)
+FA2
+summary(FA2)
+
+#Specifiy Loadings 
+LFA2=loadings(FA2)
+LFA2
+
+#Perform maximum-likelihood factor analysis covariance matrix W/ Loadings:
+
+#Factors = 1 
+m1=factanal(x=NULL,factors=1,covmat=SDWTP,n.obs=337,cutoff=0.00000001,rotation="none")
+m1$loadings
+m1
+summary(m1)
+
+#Factors = 2 
+m2 =factanal(x=NULL,factors=2,covmat=SDWTP,n.obs=337,cutoff=0.00000001,rotation="none")
+print(m2,digits=5,cutoff=0.00000001)
+m2
+summary(m2)
+
+#Using Correlation matrix Now W/ Loadings
+# Factors = 1 
+m3=factanal(x=NULL,factors=1,covmat=RDWTP,n.obs=337,cutoff=0.00000001,rotation="none")
+m3
+summary(m3)
+m3$loadings
+
+# Factors = 2
+m4 =factanal(x=NULL,factors=2,covmat=RDWTP,n.obs=337,cutoff=0.00000001,rotation="none")
+m4
+summary(m4)
+print(m2,digits=5,cutoff=0.00000001)
+```
+
+```{r}
+#Assignment 9:
+  #Loading Library and Setting Up Dataset
+library(psych)
+DWTP <- NWTP[,c(1:7)]
+
+#Create Covariance and Correlation Matrix
+SDWTP=cov(DWTP)
+RDWTP=cor(DWTP)
+
+#Principle Component Analysis W/ Covariance Matrix
+#M=1
+pc1 <- principal(r=SDWTP, nfactors = 1, rotate = 'none', covar = TRUE)
+pc1
+summary(pc1)
+#Specific Variances
+pc1$uniqueness
+
+#Residuals 
+pc1$residual
+
+# m = 2 
+pc2 <- principal(r=SDWTP, nfactors = 2, rotate = 'none', covar = TRUE)
+summary(pc2)
+pc2
+#Specific Variances
+pc2$uniqueness
+
+#Residuals 
+pc2$residual
+
+#Factor Analysis using "ML"
+#Factors = 1 
+AF1 <- fa(r=SDWTP, nfactors = 1, rotate = 'none', covar = TRUE)
+
+#Calculated Loadings and communalities
+AF1$loadings
+AF1$communalities
+
+#Specific Variation and Overall Residuals 
+AF1$uniquenes
+AF1$residual
+
+# m = 2
+#Factors = 2
+AF2 <- fa(r=SDWTP, nfactors = 2, rotate = 'none', covar = TRUE)
+
+#Calculated Loadings and communalities
+AF2$loadings
+AF2$communalities
+
+#Specific Variation and Overall Residuals 
+AF2$uniquenes
+AF2$residual
+
+#part c
+# It is clear that in this case, the Principle component analysis works far better than the mle
+# additionally, when there are 2 factors, the analysis grows far stronger, but its due to the extreme variation in the data. 
+```
+
+
+```{r}
+# Assignment # 10:
+  #Perform Factor Analysis using Correlation Matrix
+#Library and Set up Dataset
+library(psych)
+DWTP <- NWTP[,c(1:7)]
+
+#Create Covariance and Correlation Matrix
+SDWTP=cov(DWTP)
+RDWTP=cor(DWTP)
+
+#Principle Component Analysis with 1 Factor.
+#With Specific Variation and Residuals 
+P2A1<- principal(r=RDWTP, nfactors = 1, rotate = 'none', covar = FALSE)
+P2A1
+summary(P2A1)
+P2A1$uniqueness 
+P2A1$residuals
+
+#Principle Component Analysis with 2 Factors.
+#With Specific Variation and Residuals 
+P2A2<- principal(r=RDWTP, nfactors = 2, rotate = 'none', covar = FALSE)
+P2A2
+summary(P2A2)
+P2A2$uniqueness 
+P2A2$residuals
+
+# Factor Analysis USing "ML", With 1 Factor
+#W/ communalities and residuals
+A1F1 <- fa(r=RDWTP, nfactors = 1, rotate = 'none', covar = FALSE)
+A1F1
+summary(A1F1)
+A1F1$communalities
+A1F1$residual
+
+
+# Factor Analysis USing "ML", With 2 Factors
+#W/ communalities and residuals
+A1F2 <- fa(r=RDWTP, nfactors = 2, rotate = 'none', covar = FALSE)
+A1F2
+summary(A1F2)
+A1F2$communalities
+A1F2$residual
+
+#Does it make a difference if R, rather than S is factored? Explain.
+
+# It makes a difference because the Maximum Likelihood estimator is more telling of a stronger principal component. 
+#a review of the residual matrices indicates MLE still performs better than the principal component solution
+
+#Additionally, it appears that having m=2 makes the Factor Analyses and Principal component stronger, which is probably due to how many variables there are in the dataset.
+
+```
+
+
+```{r}
+#Assignment #11:
+  #generate a)specific variances b)communalities #c)proportion of variance explained by each factor d)residual matrix
+# Library and Set up dataset
+library(psych)
+DWTP <- NWTP[,c(1:7)]
+
+#Create Covariance and Correlation Matrix
+SDWTP=cov(DWTP)
+RDWTP=cor(DWTP)
+
+#Factor Analysis with Correlation Matrix & Print
+F2A1 <- fa(RDWTP,nfactors=2,n.obs=337,rotate="none",fm="ml")
+print(F2A1,digits=5,cutoff=0.00000001)
+
+#A). Specific Variances
+F2A1$uniquenesses
+
+#B).Communalities
+F2A1$communalities
+
+#C). the proportion of variance explained by each factor
+F2A1$loadings
+
+#D). Residual Matrix
+F2A1$residual
+
+# Factor Analysis with 2 facts, and correlaton matrix & Print
+CTA1 <- factanal(x=NULL,factors=2,covmat=RDWTP,n.obs=337,cutoff=0.00000001,rotation="none")
+print(CTA1,digits=5,cutoff=0.00000001)
+
+#A). Specific Variances
+CTA1$uniquenesses
+
+#B).Communalities (had to google)
+rowSums(CTA1$loadings^2)
+
+#C). the proportion of variance explained by each factor
+CTA1$loadings
+
+#D). Residual Matrix
+factor.residuals(RDWTP,CTA1$loadings)
+```
+
+```{r}
+#Assignment #12:
+#a) Compute the canonical correlations
+#b) Test for the significance of the canonical correlations with alpha=0.01.
+#c)  Generate two plots using the function helio.plot: one plot for cv=1 and one plot for cv=2.
+#Write a paragraph describing the information displayed in the plots.
+
+# Library and Set up dataset
+library(yacca)
+QB <- NWTP[,c(5:7,11,15,16)]
+RBWR <- NWTP[,c(8:10,12,17:19)]
+TP <- NWTP[,c(1:4,13:14)]
+
+#Correlation of all variables used 
+RAWTP <- cor(NWTP)
+
+#canonical correlation
+  # 3 Separate types to determine find Linear Combinations and relations among type of variables. 
+
+CCN1 <- cca(x=QB,y=RBWR,xlab = colnames(QB),ylab = colnames(RBWR),standardize.scores = TRUE)
+
+CCN2 <- cca(x=QB,y=TP,xlab = colnames(QB),ylab = colnames(TP),standardize.scores = TRUE)
+
+CCN3 <- cca(x=RBWR,y=TP,xlab = colnames(RBWR),ylab = colnames(TP),standardize.scores = TRUE)
+
+# Helio Plots For all canonical correlation models w/ plot of cv1&cv2
+
+#CCN1
+helio.plot(CCN1,cv=1)
+helio.plot(CCN1,cv=2)
+
+#CCN2
+helio.plot(CCN2,cv=1)
+helio.plot(CCN2,cv=2)
+
+#CCN3
+helio.plot(CCN3,cv=1)
+helio.plot(CCN3,cv=2)
+
+#Chi squared values for Bartlett's Test
+CCN1$chisq
+CCN1$df
+qchisq(.99,CCN1$df[1],ncp=0)
+qchisq(.99,CCN1$df[2],ncp=0)
+qchisq(.99,CCN1$df[3],ncp=0)
+qchisq(.99,CCN1$df[4],ncp=0)
+qchisq(.99,CCN1$df[5],ncp=0)
+qchisq(.99,CCN1$df[6],ncp=0)
+F.test.cca(CCN1)
+
+#CCN2
+CCN2$chisq
+CCN2$df
+qchisq(.99,CCN2$df[1],ncp=0)
+qchisq(.99,CCN2$df[2],ncp=0)
+qchisq(.99,CCN2$df[3],ncp=0)
+qchisq(.99,CCN2$df[4],ncp=0)
+qchisq(.99,CCN2$df[5],ncp=0)
+qchisq(.99,CCN2$df[6],ncp=0)
+F.test.cca(CCN2)
+
+#CCN3
+CCN3$chisq
+CCN3$df
+qchisq(.99,CCN3$df[1],ncp=0)
+qchisq(.99,CCN3$df[2],ncp=0)
+qchisq(.99,CCN3$df[3],ncp=0)
+qchisq(.99,CCN3$df[4],ncp=0)
+qchisq(.99,CCN3$df[5],ncp=0)
+qchisq(.99,CCN3$df[6],ncp=0)
+F.test.cca(CCN3)
+
+#These plots highlight that there is a substantial amount of linear correlations among the variables present in both the x and y variables. The higher the boxes stack, the more canonical correlation the variables have, and possibly can be considered linear combinations of other variables. The one major variable that has a negative correlation is the BCEFF, as its the variable whose box is pointed most inside compared to the rest. The positive correlation is when the box goes outward from the circle . The closer the boxes are to the darked center line, the less canonical correlated they are to other variables. 
+
+
+```
+
+```{r}
+#Assignment 13:
+  #Euclidean Distances and dendrograms, compare results and determine if there are several clusters
+
+# Library and Set up dataset
+library("stats")
+library(cluster)
+TWTP <- WTP[,c(1,4:5,7:8,19:22)]
+
+#Euclidean Distances
+ED<- dist(TWTP,method="euclidean")
+
+#Creating Dendrograms
+EDH <- hclust(ED,method="average")
+plot(EDH)
+
+#DO There Appear to be Several Clusters?
+  #There appears to be several clusters that have a slight assoiciation together, yet makes up a vast array of influential factors. 
+
+```
+
+```{r}
+#Assignment #14:
+  #K means cluster algorithm, compare to assignment 13, are there about the right number of clusters
+
+# Library and Set up dataset
+library("stats")
+library(cluster)
+library(NbClust)
+
+#Creating clusters, min = 2, max =15, by he kmeans method
+nc <- NbClust(NWTP, min.nc=2, max.nc=15, method="kmeans")
+
+#Set up random Generation
+set.seed(1234)
+
+#Simulating 5 clusters 
+fit5 = kmeans(NWTP, centers=5,  nstart=25)
+fit5
+
+#Euclidean cluster plot 
+clusplot(pam(NWTP,5,metric="euclidean")) 
+
+#Simulating 5 clusters 
+fit6= kmeans(NWTP, centers=6,  nstart=25)
+fit6
+
+#Euclidean cluster plot 
+clusplot(pam(NWTP,6,metric="euclidean"))
+```
+
+
+
